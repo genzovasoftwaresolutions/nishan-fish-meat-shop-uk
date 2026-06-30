@@ -517,11 +517,12 @@
 }
 
 .admin-table__img {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   object-fit: cover;
   border-radius: 8px;
   background: var(--cream);
+  display: block;
 }
 
 .admin-table__desc {

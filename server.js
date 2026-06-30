@@ -76,10 +76,10 @@ function createMember({ name, email, password }) {
   const normalizedEmail = String(email || '').trim().toLowerCase();
   const members = readMembers();
   if (members.some((member) => member.email === normalizedEmail)) {
-    return { error: 'An account with this email already exists' };
+    return { error: 'An account with this email already exists. Please sign in instead.' };
   }
   if (loadAdminEmails().includes(normalizedEmail)) {
-    return { error: 'This email is reserved for admin sign in. Use Admin Sign In instead.' };
+    return { error: 'An account with this email already exists. Please sign in instead.' };
   }
 
   const now = new Date().toISOString();

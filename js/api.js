@@ -28,9 +28,10 @@
 
   function assetUrl(path) {
     if (!path || /^https?:\/\//i.test(path)) return path;
+    const cleanPath = String(path).replace(/^\/+/, '');
     const base = getApiBase();
-    if (!base) return path;
-    return `${base}/${String(path).replace(/^\/+/, '')}`;
+    if (base) return `${base}/${cleanPath}`;
+    return `/${cleanPath}`;
   }
 
   window.nishanApi = function nishanApi(path) {

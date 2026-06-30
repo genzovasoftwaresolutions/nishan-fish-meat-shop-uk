@@ -244,7 +244,10 @@
     updatePublishNote(value);
   }
 
-  function renderImages() {
+  function productImageSrc(path, fallback = '/nottinghill_export/images/fish/salmon-fillets-1.jpg') {
+    if (!path) return fallback;
+    return typeof nishanAsset === 'function' ? nishanAsset(path) : `/${String(path).replace(/^\/+/, '')}`;
+  }
     const list = $('#imageList');
     if (!list) return;
 
@@ -256,10 +259,10 @@
     list.innerHTML = imagePaths
       .map(
         (src, i) => {
-          const imgSrc = typeof nishanAsset === 'function' ? nishanAsset(src) : `../${src}`;
+          const imgSrc = productImageSrc(src);
           return `
       <div class="admin-image-item">
-        <img src="${imgSrc}" alt="">
+        <img src="${imgSrc}" alt="" loading="lazy">
         <button type="button" data-index="${i}" aria-label="Remove image">&times;</button>
       </div>`;
         }
@@ -326,16 +329,12 @@
 
     tbody.innerHTML = filtered
       .map((p) => {
-        const img = p.images?.[0]
-          ? typeof nishanAsset === 'function'
-            ? nishanAsset(p.images[0])
-            : `../${p.images[0]}`
-          : '../nottinghill_export/images/fish/salmon-fillets-1.jpg';
+        const img = productImageSrc(p.images?.[0]);
         const desc = p.description || p.specification || '—';
         const priceLabel = p.variety ? ' / kg' : '';
         return `
         <tr>
-          <td><img class="admin-table__img" src="${img}" alt=""></td>
+          <td><img class="admin-table__img" src="${img}" alt="${escapeHtml(p.name)}" loading="lazy"></td>
           <td><strong>${escapeHtml(p.name)}</strong></td>
           <td>${formatPrice(p.price)}${priceLabel}</td>
           <td><span class="admin-table__desc">${escapeHtml(desc)}</span></td>
