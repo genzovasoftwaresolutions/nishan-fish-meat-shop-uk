@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Sign In — Nishan Fish and Meat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-auth-page">
+  <main class="admin-auth">
+    <div class="admin-auth__card" id="accountCard">
+      <div class="admin-auth__topbar">
+        <a href="/fish" class="admin-auth__back">← Back to shop</a>
+        <button type="button" class="admin-auth__signout" id="signOutBtnTop" hidden>Sign out</button>
+      </div>
+
+      <div class="admin-auth__brand" id="accountBrand">
+        <span class="admin-auth__logo-wrap">
+          <img src="images/LOGO.png" alt="Nishan Fish and Meat" class="admin-auth__logo">
+        </span>
+        <p class="admin-auth__eyebrow">Nishan Fish and Meat</p>
+        <h1>Member Account</h1>
+        <p class="admin-auth__sub">Create your account or sign in with your email to join the Nishan shop family.</p>
+      </div>
+
+      <div id="signInPanel">
+        <div class="auth-tabs" role="tablist" aria-label="Account options">
+          <button type="button" class="auth-tabs__btn active" id="tabSignIn" role="tab" aria-selected="true">Sign In</button>
+          <button type="button" class="auth-tabs__btn" id="tabRegister" role="tab" aria-selected="false">Create Account</button>
+        </div>
+
+        <form id="loginForm" class="admin-auth__form">
+          <label>
+            <span>Email</span>
+            <input type="text" name="email" autocomplete="username" required placeholder="you@example.com">
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" autocomplete="current-password" required placeholder="Enter your password">
+          </label>
+          <button type="submit" class="btn btn--primary admin-auth__submit">Sign In</button>
+        </form>
+
+        <form id="registerForm" class="admin-auth__form" hidden>
+          <label>
+            <span>Full name</span>
+            <input type="text" name="name" autocomplete="name" required placeholder="Your name">
+          </label>
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" autocomplete="email" required placeholder="you@example.com">
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" autocomplete="new-password" required minlength="6" placeholder="At least 6 characters">
+          </label>
+          <label>
+            <span>Confirm password</span>
+            <input type="password" name="confirmPassword" autocomplete="new-password" required minlength="6" placeholder="Repeat your password">
+          </label>
+          <button type="submit" class="btn btn--primary admin-auth__submit">Create Account</button>
+        </form>
+
+        <p class="admin-auth__error" id="accountError" hidden></p>
+      </div>
+
+      <div id="memberWelcome" class="member-welcome" hidden>
+        <div class="member-welcome__icon" aria-hidden="true">✓</div>
+        <h2 class="member-welcome__title">Thank you for being a Nishan shop member!</h2>
+        <p class="member-welcome__name" id="memberName"></p>
+        <p class="member-welcome__text">You are signed in. Browse our fresh fish and meat, and order easily on WhatsApp.</p>
+        <div class="member-welcome__actions">
+          <a href="/fish" class="btn btn--primary btn--full">Continue shopping</a>
+          <button type="button" class="btn btn--secondary btn--full" id="signOutBtn">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="js/account.js"></script>
+</body>
+</html>

@@ -2,28 +2,35 @@
   'use strict';
 
   const TOKEN_KEY = 'nishan_admin_token';
+  const MEMBER_TOKEN_KEY = 'nishan_member_token';
 
   const form = document.getElementById('loginForm');
   const errorEl = document.getElementById('loginError');
 
+  function showError(message) {
+    if (!errorEl) return;
+    errorEl.textContent = message;
+    errorEl.hidden = false;
+  }
+
   if (sessionStorage.getItem(TOKEN_KEY)) {
     window.location.href = '/admin/dashboard';
-    return;
   }
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    errorEl.hidden = true;
+    if (errorEl) errorEl.hidden = true;
 
     const data = new FormData(form);
-    const username = data.get('username');
-    const password = data.get('password');
 
     try {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({
+          email: data.get('login'),
+          password: data.get('password'),
+        }),
       });
 
       const body = await res.json();
@@ -32,10 +39,10 @@
       }
 
       sessionStorage.setItem(TOKEN_KEY, body.token);
+      sessionStorage.removeItem(MEMBER_TOKEN_KEY);
       window.location.href = '/admin/dashboard';
     } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.hidden = false;
+      showError(err.message);
     }
   });
 })();

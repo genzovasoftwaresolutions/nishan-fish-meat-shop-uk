@@ -49,6 +49,8 @@
       <button type="button" class="admin-search__clear" id="clearSearchBtn" hidden aria-label="Clear search">Clear</button>
     </div>
 
+    <div class="admin-category-filters toolbar__filters" id="adminCategoryFilters" role="group" aria-label="Filter by variety"></div>
+
     <p class="admin-count" id="productCount">Loading products…</p>
 
     <div class="admin-table-wrap">
@@ -89,6 +91,22 @@
           </label>
         </div>
         <p class="admin-publish-note" id="publishNote">This product will appear on the Fish page.</p>
+      </fieldset>
+
+      <fieldset class="admin-form-full admin-variety-field">
+        <legend>Product variety *</legend>
+        <label class="admin-variety-select">
+          <span>Choose variety</span>
+          <div class="admin-variety-row">
+            <select name="subcategory" id="subcategorySelect" required></select>
+            <button type="button" class="btn btn--outline btn--sm admin-variety-delete" id="deleteVarietyBtn">Delete</button>
+          </div>
+        </label>
+        <div class="admin-add-variety">
+          <input type="text" id="customSubcategory" placeholder="Add new variety (e.g. Venison, Oyster)">
+          <button type="button" class="btn btn--outline btn--sm" id="addVarietyBtn">Add variety</button>
+        </div>
+        <p class="admin-variety-note">Add or delete varieties for the shop filters. A variety can only be deleted if no products use it.</p>
       </fieldset>
 
       <div class="admin-form-grid">

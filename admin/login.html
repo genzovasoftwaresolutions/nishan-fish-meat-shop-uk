@@ -21,21 +21,25 @@
         </span>
         <p class="admin-auth__eyebrow">Nishan Fish and Meat</p>
         <h1>Admin Sign In</h1>
-        <p class="admin-auth__sub">Manage products, prices, images and descriptions.</p>
+        <p class="admin-auth__sub">Sign in with your approved admin email or username <strong>admin</strong> to manage products.</p>
       </div>
 
       <form id="loginForm" class="admin-auth__form">
         <label>
-          <span>Username</span>
-          <input type="text" name="username" autocomplete="username" required placeholder="Enter username">
+          <span>Admin email or username</span>
+          <input type="text" name="login" autocomplete="username" required placeholder="admin or hirthicksofficial@gmail.com">
         </label>
         <label>
-          <span>Password</span>
-          <input type="password" name="password" autocomplete="current-password" required placeholder="Enter password">
+          <span>Admin password</span>
+          <input type="password" name="password" autocomplete="current-password" required placeholder="Enter admin password">
         </label>
         <button type="submit" class="btn btn--primary admin-auth__submit">Sign In</button>
         <p class="admin-auth__error" id="loginError" hidden></p>
       </form>
+
+      <p class="admin-auth__hint">
+        Customers can <a href="/account">create a member account</a> with email.
+      </p>
     </div>
   </main>
   <script src="../js/admin-auth.js"></script>

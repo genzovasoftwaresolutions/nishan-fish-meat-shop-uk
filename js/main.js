@@ -76,6 +76,19 @@
     return getCart().reduce((sum, item) => sum + item.price * item.qty, 0);
   }
 
+  function getProductImage(product) {
+    const src = product?.images?.[0];
+    return typeof src === 'string' && src.trim() ? src.trim() : '';
+  }
+
+  function renderProductCardImage(product) {
+    const src = getProductImage(product);
+    if (!src) {
+      return '<div class="product-card__img product-card__img--placeholder" aria-hidden="true"></div>';
+    }
+    return `<img class="product-card__img" src="${src}" alt="${product.name}" loading="lazy">`;
+  }
+
   function categoryLabel(cat) {
     return cat === 'fish' ? 'Fish & Seafood' : 'Meat & Poultry';
   }
@@ -93,11 +106,50 @@
     return 'Premium quality from our artisan butchers. Carefully selected and prepared for the finest results.';
   }
 
+  function getMeatType(product) {
+    if (product.category !== 'meat') return '';
+    const text = `${product.name} ${product.handle}`.toLowerCase();
+    if (/\bturkey\b/.test(text)) return 'turkey';
+    if (/\bduck\b/.test(text)) return 'duck';
+    if (/\b(chicken|poussin|cornfed)\b/.test(text)) return 'chicken';
+    if (/\b(lamb|mutton)\b/.test(text)) return 'mutton';
+    if (
+      /\b(beef|steak|ribeye|sirloin|rump|wagyu|brisket|bavette|onglet|chateaubriand|veal|scotch|ox cheek|ox tail|shin of beef|marrow)\b/.test(text) ||
+      /\box\b/.test(text)
+    ) {
+      return 'beef';
+    }
+    return '';
+  }
+
+  function getFishType(product) {
+    if (product.category !== 'fish') return '';
+    const text = `${product.name} ${product.handle}`.toLowerCase();
+    if (/\b(prawns?|shrimps?|langoustines?|carabinero)\b/.test(text)) return 'prawns';
+    if (/\bcrab\b/.test(text)) return 'crab';
+    if (/\b(squid|calamari|needle-squid)\b/.test(text)) return 'squid';
+    if (/\blobster\b/.test(text)) return 'lobster';
+    if (/\b(oysters?|mussels?|scallops?|clams?|shellfish|whelks?|razor)\b/.test(text)) return 'shellfish';
+    return 'fish';
+  }
+
+  function getProductSubcategory(product) {
+    if (product.subcategory) return product.subcategory;
+    if (pageCategory === 'meat' || product.category === 'meat') return getMeatType(product);
+    if (pageCategory === 'fish' || product.category === 'fish') return getFishType(product);
+    return '';
+  }
+
+  function formatCategoryLabel(slug) {
+    return String(slug || '')
+      .split('-')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
   function matchesSubFilter(product) {
     if (activeFilter === 'all') return true;
-    if (activeFilter === 'variety') return product.variety === true;
-    if (activeFilter === 'standard') return !product.variety;
-    return product.category === activeFilter;
+    return getProductSubcategory(product) === activeFilter;
   }
 
   function applyFilters() {
@@ -145,16 +197,12 @@
         const specLine = p.specification
           ? `<p class="product-card__spec">${p.specification}</p>`
           : '';
-        const badge = p.variety
-          ? '<span class="product-card__badge product-card__badge--variety">Variety</span>'
-          : `<span class="product-card__badge product-card__badge--${p.category}">${p.category}</span>`;
         const priceLabel = p.variety ? '<small>/ kg</small>' : '<small>each</small>';
 
         return `
       <article class="product-card" data-handle="${p.handle}">
         <div class="product-card__img-wrap">
-          <img class="product-card__img" src="${p.images[0]}" alt="${p.name}" loading="lazy" onerror="this.onerror=null;this.src='nottinghill_export/images/fish/salmon-fillets-1.jpg'">
-          ${badge}
+          ${renderProductCardImage(p)}
         </div>
         <div class="product-card__body">
           <h3 class="product-card__name">${p.name}</h3>
@@ -253,8 +301,8 @@
     if (allProductsCache) return allProductsCache;
     try {
       const [fish, meat] = await Promise.all([
-        fetch('data/fish.json').then((r) => r.json()),
-        fetch('data/meat.json').then((r) => r.json()),
+        fetch('/api/products/fish', { cache: 'no-store' }).then((r) => r.json()),
+        fetch('/api/products/meat', { cache: 'no-store' }).then((r) => r.json()),
       ]);
       allProductsCache = [...fish, ...meat];
     } catch {
@@ -364,15 +412,37 @@
       header.classList.toggle('scrolled', window.scrollY > 20);
     });
 
+    const nav = $('#nav');
+    const navOverlay = $('#navOverlay');
+    const menuToggle = $('#menuToggle');
+
+    const closeNav = () => {
+      nav?.classList.remove('open');
+      navOverlay?.classList.remove('is-visible');
+      navOverlay?.setAttribute('hidden', '');
+      menuToggle?.setAttribute('aria-expanded', 'false');
+    };
+
+    const openNav = () => {
+      nav?.classList.add('open');
+      navOverlay?.classList.add('is-visible');
+      navOverlay?.removeAttribute('hidden');
+      menuToggle?.setAttribute('aria-expanded', 'true');
+    };
+
     $$('.nav__link').forEach((link) => {
-      link.addEventListener('click', () => {
-        $('#nav')?.classList.remove('open');
-      });
+      link.addEventListener('click', closeNav);
     });
 
-    $('#menuToggle')?.addEventListener('click', () => {
-      $('#nav')?.classList.toggle('open');
+    menuToggle?.addEventListener('click', () => {
+      if (nav?.classList.contains('open')) {
+        closeNav();
+      } else {
+        openNav();
+      }
     });
+
+    navOverlay?.addEventListener('click', closeNav);
   }
 
   function initFilters() {
@@ -389,11 +459,32 @@
       searchQuery = e.target.value.trim();
       renderProducts();
     });
+  }
 
-    sortSelect?.addEventListener('change', (e) => {
-      sortBy = e.target.value;
-      renderProducts();
-    });
+  async function initCategoryFilters() {
+    const container = $('#categoryFilters');
+    if (!container || pageCategory !== 'fish' && pageCategory !== 'meat') return;
+
+    let items = [];
+    try {
+      const res = await fetch(`/api/categories/${pageCategory}`, { cache: 'no-store' });
+      const data = await res.json();
+      items = data.items || [];
+    } catch {
+      items =
+        pageCategory === 'meat'
+          ? ['chicken', 'mutton', 'beef', 'duck', 'turkey']
+          : ['fish', 'prawns', 'crab', 'squid', 'lobster', 'shellfish'];
+    }
+
+    const allLabel = pageCategory === 'meat' ? 'All Meat' : 'All fish & seafood';
+    container.innerHTML = [
+      `<button type="button" class="filter-btn active" data-filter="all">${allLabel}</button>`,
+      ...items.map(
+        (slug) =>
+          `<button type="button" class="filter-btn" data-filter="${slug}">${formatCategoryLabel(slug)}</button>`
+      ),
+    ].join('');
   }
 
   function initModal() {
@@ -426,9 +517,48 @@
     }
   }
 
+  async function initAccountButton() {
+    const btn = $('#accountBtn');
+    const tooltip = $('#accountTooltip');
+    if (!btn) return;
+
+    const memberToken = sessionStorage.getItem('nishan_member_token');
+    const adminToken = sessionStorage.getItem('nishan_admin_token');
+    let user = null;
+
+    try {
+      if (adminToken) {
+        const res = await fetch('/api/admin/me', {
+          headers: { Authorization: `Bearer ${adminToken}` },
+        });
+        if (res.ok) user = await res.json();
+      } else if (memberToken) {
+        const res = await fetch('/api/member/me', {
+          headers: { Authorization: `Bearer ${memberToken}` },
+        });
+        if (res.ok) user = await res.json();
+        else sessionStorage.removeItem('nishan_member_token');
+      }
+    } catch {
+      return;
+    }
+
+    if (!user) return;
+
+    const displayName = user.name || user.email || 'Signed in';
+    btn.classList.add('account-btn--signed-in');
+    btn.setAttribute('title', displayName);
+    btn.setAttribute('aria-label', `Signed in as ${displayName}`);
+
+    if (tooltip) {
+      tooltip.textContent = displayName;
+      tooltip.hidden = false;
+    }
+  }
+
   async function initCatalog() {
     try {
-      const res = await fetch(productsUrl);
+      const res = await fetch(productsUrl, { cache: 'no-store' });
       products = await res.json();
       renderProducts();
     } catch (err) {
@@ -479,8 +609,10 @@
     initNav();
     initWhatsApp();
     initHeroSlideshow();
+    await initAccountButton();
 
     if (pageType === 'catalog') {
+      await initCategoryFilters();
       initFilters();
       initModal();
       await initCatalog();
