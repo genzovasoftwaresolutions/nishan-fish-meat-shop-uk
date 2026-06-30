@@ -66,14 +66,9 @@
     if (!memberToken) return false;
 
     try {
-      const res = await fetch('/api/member/me', {
+      const user = await nishanFetchJson('/api/member/me', {
         headers: { Authorization: `Bearer ${memberToken}` },
       });
-      if (!res.ok) {
-        sessionStorage.removeItem(MEMBER_TOKEN_KEY);
-        return false;
-      }
-      const user = await res.json();
       showWelcome(user);
       return true;
     } catch {
@@ -97,7 +92,7 @@
 
     const data = new FormData(loginForm);
     try {
-      const res = await fetch('/api/auth/login', {
+      const body = await nishanFetchJson('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -105,8 +100,6 @@
           password: data.get('password'),
         }),
       });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || 'Sign in failed');
 
       if (body.role === 'admin') {
         sessionStorage.setItem(ADMIN_TOKEN_KEY, body.token);
@@ -135,7 +128,7 @@
     }
 
     try {
-      const res = await fetch('/api/auth/register', {
+      const body = await nishanFetchJson('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -144,8 +137,6 @@
           password,
         }),
       });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || 'Could not create account');
       saveMemberSession(body);
     } catch (err) {
       showError(err.message);
@@ -155,10 +146,14 @@
   async function signOut() {
     const token = sessionStorage.getItem(MEMBER_TOKEN_KEY);
     if (token) {
-      await fetch('/api/member/logout', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      try {
+        await nishanFetchJson('/api/member/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch {
+        /* ignore logout errors */
+      }
     }
     sessionStorage.removeItem(MEMBER_TOKEN_KEY);
     loginForm?.reset();

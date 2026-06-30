@@ -11,6 +11,10 @@
     (pageCategory === 'meat' ? 'data/meat.json' : pageCategory === 'fish' ? 'data/fish.json' : '');
 
   async function fetchJson(url) {
+    if (url.startsWith('/api/')) {
+      return nishanFetchJson(url);
+    }
+
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) {
       throw new Error(`Failed to load ${url}: ${res.status}`);
@@ -136,7 +140,8 @@
     if (!src) {
       return '<div class="product-card__img product-card__img--placeholder" aria-hidden="true"></div>';
     }
-    return `<img class="product-card__img" src="${src}" alt="${product.name}" loading="lazy">`;
+    const imgSrc = typeof nishanAsset === 'function' ? nishanAsset(src) : src;
+    return `<img class="product-card__img" src="${imgSrc}" alt="${product.name}" loading="lazy">`;
   }
 
   function categoryLabel(cat) {
@@ -298,14 +303,14 @@
     $('#modalDesc').textContent = productDescription(currentProduct);
 
     const mainImg = $('#modalImg');
-    mainImg.src = currentProduct.images[0];
+    mainImg.src = typeof nishanAsset === 'function' ? nishanAsset(currentProduct.images[0]) : currentProduct.images[0];
     mainImg.alt = currentProduct.name;
 
     const thumbs = $('#modalThumbs');
     thumbs.innerHTML = currentProduct.images
       .map(
         (src, i) =>
-          `<img class="modal__thumb${i === 0 ? ' active' : ''}" src="${src}" alt="" data-index="${i}">`
+          `<img class="modal__thumb${i === 0 ? ' active' : ''}" src="${typeof nishanAsset === 'function' ? nishanAsset(src) : src}" alt="" data-index="${i}">`
       )
       .join('');
 
@@ -313,7 +318,8 @@
       thumb.addEventListener('click', () => {
         thumbs.querySelectorAll('.modal__thumb').forEach((t) => t.classList.remove('active'));
         thumb.classList.add('active');
-        mainImg.src = currentProduct.images[Number(thumb.dataset.index)];
+        const src = currentProduct.images[Number(thumb.dataset.index)];
+        mainImg.src = typeof nishanAsset === 'function' ? nishanAsset(src) : src;
       });
     });
 
@@ -568,18 +574,16 @@
 
     try {
       if (adminToken) {
-        const res = await fetch('/api/admin/me', {
+        user = await nishanFetchJson('/api/admin/me', {
           headers: { Authorization: `Bearer ${adminToken}` },
         });
-        if (res.ok) user = await res.json();
       } else if (memberToken) {
-        const res = await fetch('/api/member/me', {
+        user = await nishanFetchJson('/api/member/me', {
           headers: { Authorization: `Bearer ${memberToken}` },
         });
-        if (res.ok) user = await res.json();
-        else sessionStorage.removeItem('nishan_member_token');
       }
     } catch {
+      if (memberToken) sessionStorage.removeItem('nishan_member_token');
       return;
     }
 

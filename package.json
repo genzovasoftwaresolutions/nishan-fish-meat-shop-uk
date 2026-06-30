@@ -7,6 +7,9 @@
     "dev": "node server.js",
     "build:products": "node scripts/build-products.js"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "express": "^4.21.2",
     "google-auth-library": "^10.9.0",

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: nishan-fish-meat-shop-uk
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: ALLOWED_ORIGINS
+        value: https://nishanfishandmeatshop.netlify.app,http://localhost:3456,http://127.0.0.1:3456

@@ -31,7 +31,7 @@
   }
 
   async function api(path, options = {}) {
-    const res = await fetch(path, {
+    const res = await fetch(nishanApi(path), {
       ...options,
       headers: {
         ...(options.headers || {}),
@@ -42,7 +42,16 @@
       },
     });
 
-    const data = await res.json().catch(() => ({}));
+    const text = await res.text();
+    let data = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error('Server unavailable. Wait 30 seconds and try again.');
+      }
+    }
+
     if (res.status === 401) {
       sessionStorage.removeItem(TOKEN_KEY);
       window.location.href = '/account';
@@ -246,11 +255,14 @@
 
     list.innerHTML = imagePaths
       .map(
-        (src, i) => `
+        (src, i) => {
+          const imgSrc = typeof nishanAsset === 'function' ? nishanAsset(src) : `../${src}`;
+          return `
       <div class="admin-image-item">
-        <img src="../${src}" alt="">
+        <img src="${imgSrc}" alt="">
         <button type="button" data-index="${i}" aria-label="Remove image">&times;</button>
-      </div>`
+      </div>`;
+        }
       )
       .join('');
 
@@ -315,7 +327,9 @@
     tbody.innerHTML = filtered
       .map((p) => {
         const img = p.images?.[0]
-          ? `../${p.images[0]}`
+          ? typeof nishanAsset === 'function'
+            ? nishanAsset(p.images[0])
+            : `../${p.images[0]}`
           : '../nottinghill_export/images/fish/salmon-fillets-1.jpg';
         const desc = p.description || p.specification || '—';
         const priceLabel = p.variety ? ' / kg' : '';

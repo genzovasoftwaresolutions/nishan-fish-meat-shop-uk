@@ -314,6 +314,26 @@ function productHandleInCategory(category, handle) {
   return readProducts(category).some((product) => product.handle === handle);
 }
 
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
+  'https://nishanfishandmeatshop.netlify.app,http://localhost:3456,http://127.0.0.1:3456')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Vary', 'Origin');
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 app.use(express.json({ limit: '12mb' }));
 
 const PAGE_ROUTES = {
@@ -623,7 +643,11 @@ app.use((err, req, res, next) => {
   res.status(400).json({ error: err.message || 'Request failed' });
 });
 
-const server = app.listen(PORT, () => {
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, service: 'nishan-fish-meat-shop' });
+});
+
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Nishan site running at http://localhost:${PORT}`);
 });
 
