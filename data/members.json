@@ -1,0 +1,23 @@
+[
+  {
+    "email": "hirthicksiva007@gmail.com",
+    "name": "Hirthick",
+    "passwordHash": "a7a8ef96281bf755c81c3d9e4e4d6b34:6e5bdc2737c7087d14cfd463bf665d9d1c910528bfd51ce9478cc28958b8836de120323de36fd2578c34e91a0d2e0a50b74b013bd9d8d7e28ff77f0970d492f1",
+    "createdAt": "2026-06-30T21:48:43.272Z",
+    "updatedAt": "2026-06-30T21:48:43.272Z"
+  },
+  {
+    "email": "hirthicksiva@gmail.com",
+    "name": "Hirthick",
+    "passwordHash": "44b21a8cf71eec839a0c411a8a817186:d2526bc351be4978842f9a4fc2d8f202611ad84345ae0fbb489fb8abc54e63cf0e85754a8e2dd1427110b1312ed00b7a28e6646a53f5a3a0c4316f8a7a745aee",
+    "createdAt": "2026-06-30T22:14:11.994Z",
+    "updatedAt": "2026-06-30T22:14:11.994Z"
+  },
+  {
+    "email": "hirthicksofficials@gmail.com",
+    "name": "hirthick officials",
+    "passwordHash": "6f31a16ca47678b49fcb130e7bef8aa8:b56ee3b7067fb27ab411e913a51ebf336f40b22bbf5dccfdb2156ec451f956dac0936719ed44db8ef7d7597ea3622a2f0c6e807d263666a011a0b21f0542ca58",
+    "createdAt": "2026-06-30T22:25:02.653Z",
+    "updatedAt": "2026-06-30T22:25:02.653Z"
+  }
+]

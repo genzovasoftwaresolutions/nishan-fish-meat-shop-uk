@@ -2,21 +2,10 @@ node_modules/
 .env
 .env.*
 
-# Local admin credentials (use admin-config.example.json as a template)
-data/admin-config.json
-
-# Google OAuth client ID (use google-auth.example.json as a template)
-data/google-auth.json
-
-# Registered shop members (use members.example.json as a template)
-data/members.json
-
 # Duplicate archive of product images already in nottinghill_export/
 nottinghill_export.zip
 
-# Blocklisted stock photos — never use for products
-nottinghill_export/images/fish/52386-*.webp
-nottinghill_export/images/fish/shinygoldfish*.jpg
+# Loose hero assets at project root (canonical copies live in images/hero/)
 /1.png
 /2.png
 /3.png
