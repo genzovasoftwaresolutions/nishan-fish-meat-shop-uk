@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Sign In — Nishan Fish and Meat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-auth-page">
+  <main class="admin-auth">
+    <div class="admin-auth__card">
+      <a href="/fish" class="admin-auth__back">← Back to shop</a>
+
+      <div class="admin-auth__brand">
+        <span class="admin-auth__logo-wrap">
+          <img src="../images/LOGO.png" alt="Nishan Fish and Meat" class="admin-auth__logo">
+        </span>
+        <p class="admin-auth__eyebrow">Nishan Fish and Meat</p>
+        <h1>Admin Sign In</h1>
+        <p class="admin-auth__sub">Manage products, prices, images and descriptions.</p>
+      </div>
+
+      <form id="loginForm" class="admin-auth__form">
+        <label>
+          <span>Username</span>
+          <input type="text" name="username" autocomplete="username" required placeholder="Enter username">
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" name="password" autocomplete="current-password" required placeholder="Enter password">
+        </label>
+        <button type="submit" class="btn btn--primary admin-auth__submit">Sign In</button>
+        <p class="admin-auth__error" id="loginError" hidden></p>
+      </form>
+    </div>
+  </main>
+  <script src="../js/admin-auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+node_modules/
+.env
+.env.*
+
+# Local admin credentials (use admin-config.example.json as a template)
+data/admin-config.json
+
+# Duplicate archive of product images already in nottinghill_export/
+nottinghill_export.zip
+
+# Loose hero assets at project root (canonical copies live in images/hero/)
+/1.png
+/2.png
+/3.png
+/4.png
+/MEAT5.png
+/MEAT6.png
+/MEAT7.png
