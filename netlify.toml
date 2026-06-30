@@ -1,0 +1,27 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/"
+  to = "/fish.html"
+  status = 200
+
+[[redirects]]
+  from = "/fish"
+  to = "/fish.html"
+  status = 200
+
+[[redirects]]
+  from = "/meat"
+  to = "/meat.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact.html"
+  status = 200
+
+[[redirects]]
+  from = "/account"
+  to = "/account.html"
+  status = 200

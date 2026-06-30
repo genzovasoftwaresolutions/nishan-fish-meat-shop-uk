@@ -6,6 +6,56 @@
   const pageType = document.body.dataset.page || 'catalog';
   const pageCategory = document.body.dataset.category || '';
   const productsUrl = document.body.dataset.productsUrl || 'data/products.json';
+  const staticProductsUrl =
+    document.body.dataset.staticProductsUrl ||
+    (pageCategory === 'meat' ? 'data/meat.json' : pageCategory === 'fish' ? 'data/fish.json' : '');
+
+  async function fetchJson(url) {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error(`Failed to load ${url}: ${res.status}`);
+    }
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error(`Expected JSON from ${url}`);
+    }
+    return res.json();
+  }
+
+  async function loadProductsForCategory(cat) {
+    const apiUrl = cat === 'meat' ? '/api/products/meat' : '/api/products/fish';
+    const staticUrl = cat === 'meat' ? 'data/meat.json' : 'data/fish.json';
+
+    try {
+      return await fetchJson(apiUrl);
+    } catch (apiErr) {
+      console.warn(`API unavailable for ${cat}, using static catalog`, apiErr);
+      return fetchJson(staticUrl);
+    }
+  }
+
+  async function loadCategoryItems(cat) {
+    const defaults =
+      cat === 'meat'
+        ? ['chicken', 'mutton', 'beef', 'duck', 'turkey']
+        : ['fish', 'prawns', 'crab', 'squid', 'lobster', 'shellfish'];
+
+    try {
+      const data = await fetchJson(`/api/categories/${cat}`);
+      if (data.items?.length) return data.items;
+    } catch {
+      /* try static categories file */
+    }
+
+    try {
+      const data = await fetchJson('data/shop-categories.json');
+      if (Array.isArray(data[cat]) && data[cat].length) return data[cat];
+    } catch {
+      /* use defaults */
+    }
+
+    return defaults;
+  }
 
   let products = [];
   let filtered = [];
@@ -301,8 +351,8 @@
     if (allProductsCache) return allProductsCache;
     try {
       const [fish, meat] = await Promise.all([
-        fetch('/api/products/fish', { cache: 'no-store' }).then((r) => r.json()),
-        fetch('/api/products/meat', { cache: 'no-store' }).then((r) => r.json()),
+        loadProductsForCategory('fish'),
+        loadProductsForCategory('meat'),
       ]);
       allProductsCache = [...fish, ...meat];
     } catch {
@@ -463,19 +513,9 @@
 
   async function initCategoryFilters() {
     const container = $('#categoryFilters');
-    if (!container || pageCategory !== 'fish' && pageCategory !== 'meat') return;
+    if (!container || (pageCategory !== 'fish' && pageCategory !== 'meat')) return;
 
-    let items = [];
-    try {
-      const res = await fetch(`/api/categories/${pageCategory}`, { cache: 'no-store' });
-      const data = await res.json();
-      items = data.items || [];
-    } catch {
-      items =
-        pageCategory === 'meat'
-          ? ['chicken', 'mutton', 'beef', 'duck', 'turkey']
-          : ['fish', 'prawns', 'crab', 'squid', 'lobster', 'shellfish'];
-    }
+    const items = await loadCategoryItems(pageCategory);
 
     const allLabel = pageCategory === 'meat' ? 'All Meat' : 'All fish & seafood';
     container.innerHTML = [
@@ -558,13 +598,18 @@
 
   async function initCatalog() {
     try {
-      const res = await fetch(productsUrl, { cache: 'no-store' });
-      products = await res.json();
+      if (pageCategory === 'fish' || pageCategory === 'meat') {
+        products = await loadProductsForCategory(pageCategory);
+      } else if (staticProductsUrl) {
+        products = await fetchJson(staticProductsUrl);
+      } else {
+        products = await fetchJson(productsUrl);
+      }
       renderProducts();
     } catch (err) {
       if (productGrid) {
         productGrid.innerHTML =
-          '<p class="no-results">Unable to load products. Please run a local server.</p>';
+          '<p class="no-results">Unable to load products right now. Please refresh the page.</p>';
       }
       console.error(err);
     }
