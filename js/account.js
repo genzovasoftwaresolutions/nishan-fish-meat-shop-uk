@@ -56,12 +56,6 @@
   }
 
   async function checkExistingSession() {
-    const adminToken = sessionStorage.getItem(ADMIN_TOKEN_KEY);
-    if (adminToken) {
-      window.location.href = '/admin/dashboard';
-      return true;
-    }
-
     const memberToken = sessionStorage.getItem(MEMBER_TOKEN_KEY);
     if (!memberToken) return false;
 
@@ -102,9 +96,9 @@
       });
 
       if (body.role === 'admin') {
-        sessionStorage.setItem(ADMIN_TOKEN_KEY, body.token);
-        sessionStorage.removeItem(MEMBER_TOKEN_KEY);
-        window.location.href = '/admin/dashboard';
+        showError(
+          'Manager accounts cannot sign in here. Use the "Sign in to manage products" link below, or go to /admin/login.'
+        );
         return;
       }
 

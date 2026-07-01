@@ -24,25 +24,21 @@
     const data = new FormData(form);
 
     try {
-      const res = await fetch('/api/admin/login', {
+      const body = await nishanFetchJson('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          login: data.get('login'),
           email: data.get('login'),
           password: data.get('password'),
         }),
       });
 
-      const body = await res.json();
-      if (!res.ok) {
-        throw new Error(body.error || 'Sign in failed');
-      }
-
       sessionStorage.setItem(TOKEN_KEY, body.token);
       sessionStorage.removeItem(MEMBER_TOKEN_KEY);
       window.location.href = '/admin/dashboard';
     } catch (err) {
-      showError(err.message);
+      showError(err.message || 'Sign in failed. Check your username and password.');
     }
   });
 })();

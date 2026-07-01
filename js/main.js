@@ -135,13 +135,26 @@
     return typeof src === 'string' && src.trim() ? src.trim() : '';
   }
 
+  function resolveProductImageSrc(src) {
+    if (!src) return '';
+    return typeof nishanAsset === 'function' ? nishanAsset(src) : src;
+  }
+
+  function productImageOnErrorAttr(src) {
+    const fallback =
+      typeof nishanAssetFallback === 'function' ? nishanAssetFallback(src) : '';
+    const local = resolveProductImageSrc(src);
+    if (!fallback || fallback === local) return '';
+    return ` data-fallback="${fallback}" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.removeAttribute('data-fallback')}else{this.onerror=null}"`;
+  }
+
   function renderProductCardImage(product) {
     const src = getProductImage(product);
     if (!src) {
       return '<div class="product-card__img product-card__img--placeholder" aria-hidden="true"></div>';
     }
-    const imgSrc = typeof nishanAsset === 'function' ? nishanAsset(src) : src;
-    return `<img class="product-card__img" src="${imgSrc}" alt="${product.name}" loading="lazy">`;
+    const imgSrc = resolveProductImageSrc(src);
+    return `<img class="product-card__img" src="${imgSrc}" alt="${product.name}" loading="lazy"${productImageOnErrorAttr(src)}>`;
   }
 
   function categoryLabel(cat) {
@@ -303,14 +316,32 @@
     $('#modalDesc').textContent = productDescription(currentProduct);
 
     const mainImg = $('#modalImg');
-    mainImg.src = typeof nishanAsset === 'function' ? nishanAsset(currentProduct.images[0]) : currentProduct.images[0];
+    mainImg.src = resolveProductImageSrc(currentProduct.images[0]);
     mainImg.alt = currentProduct.name;
+    const mainFallback = productImageOnErrorAttr(currentProduct.images[0]);
+    if (mainFallback) {
+      const match = mainFallback.match(/data-fallback="([^"]+)"/);
+      if (match) {
+        mainImg.dataset.fallback = match[1];
+        mainImg.onerror = function onImgError() {
+          if (this.dataset.fallback) {
+            this.src = this.dataset.fallback;
+            delete this.dataset.fallback;
+          } else {
+            this.onerror = null;
+          }
+        };
+      }
+    } else {
+      mainImg.onerror = null;
+      delete mainImg.dataset.fallback;
+    }
 
     const thumbs = $('#modalThumbs');
     thumbs.innerHTML = currentProduct.images
       .map(
         (src, i) =>
-          `<img class="modal__thumb${i === 0 ? ' active' : ''}" src="${typeof nishanAsset === 'function' ? nishanAsset(src) : src}" alt="" data-index="${i}">`
+          `<img class="modal__thumb${i === 0 ? ' active' : ''}" src="${resolveProductImageSrc(src)}" alt="" data-index="${i}"${productImageOnErrorAttr(src)}>`
       )
       .join('');
 
@@ -319,7 +350,25 @@
         thumbs.querySelectorAll('.modal__thumb').forEach((t) => t.classList.remove('active'));
         thumb.classList.add('active');
         const src = currentProduct.images[Number(thumb.dataset.index)];
-        mainImg.src = typeof nishanAsset === 'function' ? nishanAsset(src) : src;
+        mainImg.src = resolveProductImageSrc(src);
+        const fb = productImageOnErrorAttr(src);
+        if (fb) {
+          const match = fb.match(/data-fallback="([^"]+)"/);
+          if (match) {
+            mainImg.dataset.fallback = match[1];
+            mainImg.onerror = function onImgError() {
+              if (this.dataset.fallback) {
+                this.src = this.dataset.fallback;
+                delete this.dataset.fallback;
+              } else {
+                this.onerror = null;
+              }
+            };
+          }
+        } else {
+          mainImg.onerror = null;
+          delete mainImg.dataset.fallback;
+        }
       });
     });
 
