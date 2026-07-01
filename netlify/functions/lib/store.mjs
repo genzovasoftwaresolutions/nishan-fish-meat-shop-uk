@@ -50,12 +50,16 @@ export async function setJson(key, value) {
 
 export async function getAdminConfig() {
   const config = await getJson('adminConfig');
+  const emails = Array.isArray(config.adminEmails)
+    ? config.adminEmails.map((e) => String(e).trim().toLowerCase()).filter(Boolean)
+    : ['admin@gmail.com'];
+  if (!emails.includes('admin@gmail.com')) {
+    emails.push('admin@gmail.com');
+  }
   return {
     username: String(config.username || 'admin').trim(),
     password: String(config.password || process.env.ADMIN_PASSWORD || 'nishan2026'),
-    adminEmails: Array.isArray(config.adminEmails)
-      ? config.adminEmails.map((e) => String(e).trim().toLowerCase()).filter(Boolean)
-      : ['hirthicksofficial@gmail.com'],
+    adminEmails: emails,
   };
 }
 

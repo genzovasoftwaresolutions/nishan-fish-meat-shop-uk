@@ -19,13 +19,13 @@
 
 [[redirects]]
   from = "/admin/login"
-  to = "/admin/login.html"
-  status = 200
+  to = "/account.html"
+  status = 302
 
 [[redirects]]
   from = "/admin"
-  to = "/admin/login.html"
-  status = 200
+  to = "/account.html"
+  status = 302
 
 [[redirects]]
   from = "/"

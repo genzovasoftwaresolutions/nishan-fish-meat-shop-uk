@@ -12,7 +12,7 @@ const sessions = new Map();
 const ADMIN_CONFIG_PATH = path.join(ROOT, 'data', 'admin-config.json');
 const MEMBERS_PATH = path.join(ROOT, 'data', 'members.json');
 const CATEGORIES_PATH = path.join(ROOT, 'data', 'shop-categories.json');
-const DEFAULT_ADMIN_EMAILS = ['hirthicksofficial@gmail.com'];
+const DEFAULT_ADMIN_EMAILS = ['admin@gmail.com'];
 const DEFAULT_CATEGORIES = {
   meat: ['chicken', 'mutton', 'beef', 'duck', 'turkey'],
   fish: ['fish', 'prawns', 'crab', 'squid', 'lobster', 'shellfish'],

@@ -1,4 +1,5 @@
 {
   "username": "admin",
-  "password": "nishan2026"
+  "password": "nishan2026",
+  "adminEmails": ["admin@gmail.com"]
 }

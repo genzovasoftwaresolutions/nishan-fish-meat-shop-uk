@@ -24,7 +24,7 @@
 
   function requireAuth() {
     if (!getToken()) {
-      window.location.href = '/admin/login';
+      window.location.href = '/account';
       return false;
     }
     return true;
@@ -54,7 +54,7 @@
 
     if (res.status === 401) {
       sessionStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/admin/login';
+      window.location.href = '/account';
       throw new Error('Session expired');
     }
     if (!res.ok) {
@@ -628,7 +628,7 @@
         /* ignore */
       }
       sessionStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/admin/login';
+      window.location.href = '/account';
     });
 
     try {

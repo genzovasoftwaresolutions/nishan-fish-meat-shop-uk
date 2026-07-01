@@ -56,6 +56,19 @@
   }
 
   async function checkExistingSession() {
+    const adminToken = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+    if (adminToken) {
+      try {
+        await nishanFetchJson('/api/admin/me', {
+          headers: { Authorization: `Bearer ${adminToken}` },
+        });
+        window.location.href = '/admin/dashboard';
+        return true;
+      } catch {
+        sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+      }
+    }
+
     const memberToken = sessionStorage.getItem(MEMBER_TOKEN_KEY);
     if (!memberToken) return false;
 
@@ -77,6 +90,12 @@
     showWelcome(data.user);
   }
 
+  function saveAdminSession(data) {
+    sessionStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+    sessionStorage.removeItem(MEMBER_TOKEN_KEY);
+    window.location.href = '/admin/dashboard';
+  }
+
   tabSignIn?.addEventListener('click', () => setActiveTab('signin'));
   tabRegister?.addEventListener('click', () => setActiveTab('register'));
 
@@ -88,13 +107,8 @@
     const email = String(data.get('email') || '').trim().toLowerCase();
     const password = String(data.get('password') || '');
 
-    if (email === 'admin') {
-      showError('This page is for shop members only. Managers sign in at /admin/login with username admin.');
-      return;
-    }
-
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showError('Please enter your email address. Shop managers use /admin/login instead.');
+      showError('Please enter a valid email address.');
       return;
     }
 
@@ -106,9 +120,7 @@
       });
 
       if (body.role === 'admin') {
-        showError(
-          'Manager accounts cannot sign in here. Use the "Sign in to manage products" link below, or go to /admin/login.'
-        );
+        saveAdminSession(body);
         return;
       }
 
