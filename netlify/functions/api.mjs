@@ -6,6 +6,8 @@ import {
   verifyToken,
 } from './lib/crypto-utils.mjs';
 import { getAdminConfig, getJson, getJwtSecret, setJson } from './lib/store.mjs';
+import { extFromMime, imageKey, imagePublicPath, loadImage, saveImage } from './lib/images.mjs';
+import { parse as parseMultipart } from 'lambda-multipart-parser';
 
 const DEFAULT_CATEGORIES = {
   meat: ['chicken', 'mutton', 'beef', 'duck', 'turkey'],
@@ -21,6 +23,19 @@ function jsonResponse(statusCode, body, extraHeaders = {}) {
       ...extraHeaders,
     },
     body: JSON.stringify(body),
+  };
+}
+
+function binaryResponse(statusCode, buffer, contentType, extraHeaders = {}) {
+  return {
+    statusCode,
+    headers: {
+      'Content-Type': contentType,
+      'Cache-Control': 'public, max-age=86400',
+      ...extraHeaders,
+    },
+    body: buffer.toString('base64'),
+    isBase64Encoded: true,
   };
 }
 
@@ -279,6 +294,22 @@ export async function handler(event) {
       return jsonResponse(200, { ok: true, service: 'nishan-fish-meat-shop-netlify' }, cors);
     }
 
+    const imageMatch = path.match(/^\/api\/images\/(fish|meat)\/([^/]+)$/);
+    if (method === 'GET' && imageMatch) {
+      const category = imageMatch[1];
+      const filename = decodeURIComponent(imageMatch[2]);
+      if (!/^[a-z0-9._-]+$/i.test(filename)) {
+        return jsonResponse(400, { error: 'Invalid filename' }, cors);
+      }
+
+      const stored = await loadImage(imageKey(category, filename));
+      if (!stored) {
+        return jsonResponse(404, { error: 'Image not found' }, cors);
+      }
+
+      return binaryResponse(200, stored.buffer, stored.contentType, cors);
+    }
+
     if (method === 'POST' && path === '/api/auth/register') {
       const body = parseBody(event);
       const name = String(body.name || '').trim();
@@ -533,14 +564,43 @@ export async function handler(event) {
     if (method === 'POST' && path === '/api/admin/upload') {
       const denied = requireAdmin(session);
       if (denied) return { ...denied, headers: { ...denied.headers, ...cors } };
-      return jsonResponse(
-        501,
-        {
-          error:
-            'Image upload on Netlify is limited. Edit products using existing images, or add new image files to the project folder and redeploy.',
-        },
-        cors
-      );
+
+      const query = event.queryStringParameters || {};
+      const category = query.category === 'meat' ? 'meat' : 'fish';
+      const handle = slugify(query.handle || 'product') || 'product';
+
+      let parsed;
+      try {
+        parsed = await parseMultipart(event);
+      } catch {
+        return jsonResponse(400, { error: 'Could not read uploaded image' }, cors);
+      }
+
+      const file =
+        parsed.files?.find((f) => f.fieldname === 'image') ||
+        parsed.files?.[0];
+
+      if (!file?.content?.length) {
+        return jsonResponse(400, { error: 'No image uploaded' }, cors);
+      }
+
+      const contentType = String(file.contentType || file.mimetype || 'image/jpeg').toLowerCase();
+      if (!contentType.startsWith('image/')) {
+        return jsonResponse(400, { error: 'Only image files are allowed' }, cors);
+      }
+
+      const buffer = Buffer.isBuffer(file.content) ? file.content : Buffer.from(file.content);
+      if (buffer.length > 8 * 1024 * 1024) {
+        return jsonResponse(400, { error: 'Image too large (max 8MB)' }, cors);
+      }
+
+      const ext = extFromMime(contentType);
+      const filename = `${handle}-${Date.now()}${ext}`;
+      const key = imageKey(category, filename);
+
+      await saveImage(key, buffer, contentType);
+
+      return jsonResponse(200, { path: imagePublicPath(category, filename) }, cors);
     }
 
     return jsonResponse(404, { error: 'Not found' }, cors);
