@@ -85,14 +85,24 @@
     hideError();
 
     const data = new FormData(loginForm);
+    const email = String(data.get('email') || '').trim().toLowerCase();
+    const password = String(data.get('password') || '');
+
+    if (email === 'admin') {
+      showError('This page is for shop members only. Managers sign in at /admin/login with username admin.');
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError('Please enter your email address. Shop managers use /admin/login instead.');
+      return;
+    }
+
     try {
       const body = await nishanFetchJson('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: data.get('email'),
-          password: data.get('password'),
-        }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (body.role === 'admin') {

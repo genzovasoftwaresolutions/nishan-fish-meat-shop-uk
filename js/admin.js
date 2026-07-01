@@ -24,7 +24,7 @@
 
   function requireAuth() {
     if (!getToken()) {
-      window.location.href = '/account';
+      window.location.href = '/admin/login';
       return false;
     }
     return true;
@@ -54,7 +54,7 @@
 
     if (res.status === 401) {
       sessionStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/account';
+      window.location.href = '/admin/login';
       throw new Error('Session expired');
     }
     if (!res.ok) {
@@ -248,6 +248,8 @@
     if (!path) return fallback;
     return typeof nishanAsset === 'function' ? nishanAsset(path) : `/${String(path).replace(/^\/+/, '')}`;
   }
+
+  function renderImages() {
     const list = $('#imageList');
     if (!list) return;
 
@@ -626,7 +628,7 @@
         /* ignore */
       }
       sessionStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/account';
+      window.location.href = '/admin/login';
     });
 
     try {
