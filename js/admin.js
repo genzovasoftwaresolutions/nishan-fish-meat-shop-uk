@@ -6,7 +6,7 @@
   const $$ = (sel) => document.querySelectorAll(sel);
 
   const DEFAULT_CATEGORY_LISTS = {
-    fish: ['fish', 'prawns', 'crab', 'squid', 'lobster', 'shellfish'],
+    fish: ['fish', 'prawns', 'crab', 'lobster', 'shellfish'],
     meat: ['chicken', 'mutton', 'beef', 'duck', 'turkey'],
   };
 
@@ -194,7 +194,6 @@
     const text = `${product.name} ${product.handle}`.toLowerCase();
     if (/\b(prawns?|shrimps?|langoustines?|carabinero)\b/.test(text)) return 'prawns';
     if (/\bcrab\b/.test(text)) return 'crab';
-    if (/\b(squid|calamari|needle-squid)\b/.test(text)) return 'squid';
     if (/\blobster\b/.test(text)) return 'lobster';
     if (/\b(oysters?|mussels?|scallops?|clams?|shellfish|whelks?|razor)\b/.test(text)) return 'shellfish';
     return 'fish';

@@ -11,7 +11,7 @@ import { parse as parseMultipart } from 'lambda-multipart-parser';
 
 const DEFAULT_CATEGORIES = {
   meat: ['chicken', 'mutton', 'beef', 'duck', 'turkey'],
-  fish: ['fish', 'prawns', 'crab', 'squid', 'lobster', 'shellfish'],
+  fish: ['fish', 'prawns', 'crab', 'lobster', 'shellfish'],
 };
 
 function jsonResponse(statusCode, body, extraHeaders = {}) {
@@ -97,9 +97,12 @@ function formatSlugLabel(slug) {
 
 async function readCategories() {
   const data = await getJson('categories');
+  const fish = Array.isArray(data.fish)
+    ? data.fish.map(slugify).filter(Boolean).filter((slug) => slug !== 'squid')
+    : [...DEFAULT_CATEGORIES.fish];
   return {
     meat: Array.isArray(data.meat) ? data.meat.map(slugify).filter(Boolean) : [...DEFAULT_CATEGORIES.meat],
-    fish: Array.isArray(data.fish) ? data.fish.map(slugify).filter(Boolean) : [...DEFAULT_CATEGORIES.fish],
+    fish,
   };
 }
 
@@ -108,7 +111,11 @@ async function writeCategories(categories) {
 }
 
 async function readProducts(category) {
-  return getJson(category === 'meat' ? 'meat' : 'fish');
+  const products = await getJson(category === 'meat' ? 'meat' : 'fish');
+  if (category !== 'fish') return products;
+  return products.map((product) =>
+    product.subcategory === 'squid' ? { ...product, subcategory: 'fish' } : product
+  );
 }
 
 async function writeProducts(category, products) {

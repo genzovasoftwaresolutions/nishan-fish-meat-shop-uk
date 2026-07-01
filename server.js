@@ -15,7 +15,7 @@ const CATEGORIES_PATH = path.join(ROOT, 'data', 'shop-categories.json');
 const DEFAULT_ADMIN_EMAILS = ['admin@gmail.com'];
 const DEFAULT_CATEGORIES = {
   meat: ['chicken', 'mutton', 'beef', 'duck', 'turkey'],
-  fish: ['fish', 'prawns', 'crab', 'squid', 'lobster', 'shellfish'],
+  fish: ['fish', 'prawns', 'crab', 'lobster', 'shellfish'],
 };
 const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 
@@ -164,7 +164,11 @@ function productsPath(category) {
 }
 
 function readProducts(category) {
-  return JSON.parse(fs.readFileSync(productsPath(category), 'utf8'));
+  const products = JSON.parse(fs.readFileSync(productsPath(category), 'utf8'));
+  if (category !== 'fish') return products;
+  return products.map((product) =>
+    product.subcategory === 'squid' ? { ...product, subcategory: 'fish' } : product
+  );
 }
 
 function writeProducts(category, products) {
@@ -181,9 +185,12 @@ function slugify(name) {
 function readCategories() {
   try {
     const data = JSON.parse(fs.readFileSync(CATEGORIES_PATH, 'utf8'));
+    const fish = Array.isArray(data.fish)
+      ? data.fish.map(slugify).filter(Boolean).filter((slug) => slug !== 'squid')
+      : [...DEFAULT_CATEGORIES.fish];
     return {
       meat: Array.isArray(data.meat) ? data.meat.map(slugify).filter(Boolean) : [...DEFAULT_CATEGORIES.meat],
-      fish: Array.isArray(data.fish) ? data.fish.map(slugify).filter(Boolean) : [...DEFAULT_CATEGORIES.fish],
+      fish,
     };
   } catch {
     return {

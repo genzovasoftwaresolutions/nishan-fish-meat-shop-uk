@@ -42,7 +42,7 @@
     const defaults =
       cat === 'meat'
         ? ['chicken', 'mutton', 'beef', 'duck', 'turkey']
-        : ['fish', 'prawns', 'crab', 'squid', 'lobster', 'shellfish'];
+        : ['fish', 'prawns', 'crab', 'lobster', 'shellfish'];
 
     try {
       const data = await fetchJson(`/api/categories/${cat}`);
@@ -195,7 +195,6 @@
     const text = `${product.name} ${product.handle}`.toLowerCase();
     if (/\b(prawns?|shrimps?|langoustines?|carabinero)\b/.test(text)) return 'prawns';
     if (/\bcrab\b/.test(text)) return 'crab';
-    if (/\b(squid|calamari|needle-squid)\b/.test(text)) return 'squid';
     if (/\blobster\b/.test(text)) return 'lobster';
     if (/\b(oysters?|mussels?|scallops?|clams?|shellfish|whelks?|razor)\b/.test(text)) return 'shellfish';
     return 'fish';
