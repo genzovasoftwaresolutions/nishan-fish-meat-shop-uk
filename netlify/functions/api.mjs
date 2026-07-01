@@ -112,10 +112,25 @@ async function writeCategories(categories) {
 
 async function readProducts(category) {
   const products = await getJson(category === 'meat' ? 'meat' : 'fish');
-  if (category !== 'fish') return products;
-  return products.map((product) =>
-    product.subcategory === 'squid' ? { ...product, subcategory: 'fish' } : product
-  );
+  return products.map((product) => {
+    let next = product;
+    if (category === 'fish' && product.subcategory === 'squid') {
+      next = { ...next, subcategory: 'fish' };
+    }
+    const images = sortProductImages(product.images);
+    if (images.length !== (product.images || []).length || images.some((src, i) => src !== product.images?.[i])) {
+      next = { ...next, images };
+    }
+    return next;
+  });
+}
+
+function sortProductImages(images) {
+  if (!Array.isArray(images)) return [];
+  const list = [...new Set(images.map((src) => String(src || '').trim()).filter(Boolean))];
+  const uploaded = list.filter((src) => src.includes('api/images/'));
+  const other = list.filter((src) => !src.includes('api/images/'));
+  return [...uploaded, ...other];
 }
 
 async function writeProducts(category, products) {
@@ -256,7 +271,7 @@ function normalizeProduct(body, category, existingHandle, subcategorySlug = '') 
     specification: String(body.specification || '').trim(),
     description: String(body.description || '').trim(),
     variety: Boolean(body.variety),
-    images: Array.isArray(body.images) ? body.images.filter(Boolean) : [],
+    images: sortProductImages(Array.isArray(body.images) ? body.images.filter(Boolean) : []),
   };
 }
 

@@ -930,6 +930,22 @@
   width: 88px;
 }
 
+.admin-image-item__primary {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--navy);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.admin-table__no-img {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--text-muted, #888);
+}
+
 .admin-image-item img {
   width: 88px;
   height: 88px;

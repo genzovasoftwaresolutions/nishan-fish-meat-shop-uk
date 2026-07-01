@@ -16,9 +16,32 @@
     return '';
   }
 
+  function normalizeImagePath(path) {
+    if (!path || typeof path !== 'string') return '';
+    const trimmed = path.trim();
+    if (!trimmed || /^https?:\/\//i.test(trimmed)) return trimmed;
+    return trimmed.replace(/^\/+/, '');
+  }
+
   function assetUrl(path) {
-    if (!path || /^https?:\/\//i.test(path)) return path;
-    return `/${String(path).replace(/^\/+/, '')}`;
+    const normalized = normalizeImagePath(path);
+    if (!normalized) return '';
+    if (/^https?:\/\//i.test(normalized)) return normalized;
+    return `/${normalized}`;
+  }
+
+  function assetUrlWithKey(path, cacheKey) {
+    const url = assetUrl(path);
+    if (!url || !cacheKey) return url;
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}v=${encodeURIComponent(String(cacheKey))}`;
+  }
+
+  function sortProductImages(paths) {
+    const list = [...new Set((paths || []).map(normalizeImagePath).filter(Boolean))];
+    const uploaded = list.filter((p) => p.startsWith('api/images/'));
+    const other = list.filter((p) => !p.startsWith('api/images/'));
+    return [...uploaded, ...other];
   }
 
   window.nishanApi = function nishanApi(path) {
@@ -27,6 +50,8 @@
   };
 
   window.nishanAsset = assetUrl;
+  window.nishanAssetWithKey = assetUrlWithKey;
+  window.nishanSortProductImages = sortProductImages;
   window.nishanAssetFallback = function nishanAssetFallback() {
     return '';
   };

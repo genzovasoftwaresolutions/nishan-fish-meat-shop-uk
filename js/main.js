@@ -131,21 +131,19 @@
   }
 
   function getProductImage(product) {
-    const src = product?.images?.[0];
+    const images = Array.isArray(product?.images) ? product.images : [];
+    const sorted =
+      typeof nishanSortProductImages === 'function' ? nishanSortProductImages(images) : images;
+    const src = sorted[0];
     return typeof src === 'string' && src.trim() ? src.trim() : '';
   }
 
-  function resolveProductImageSrc(src) {
+  function resolveProductImageSrc(src, cacheKey) {
     if (!src) return '';
+    if (typeof nishanAssetWithKey === 'function' && cacheKey) {
+      return nishanAssetWithKey(src, cacheKey);
+    }
     return typeof nishanAsset === 'function' ? nishanAsset(src) : src;
-  }
-
-  function productImageOnErrorAttr(src) {
-    const fallback =
-      typeof nishanAssetFallback === 'function' ? nishanAssetFallback(src) : '';
-    const local = resolveProductImageSrc(src);
-    if (!fallback || fallback === local) return '';
-    return ` data-fallback="${fallback}" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.removeAttribute('data-fallback')}else{this.onerror=null}"`;
   }
 
   function renderProductCardImage(product) {
@@ -153,8 +151,8 @@
     if (!src) {
       return '<div class="product-card__img product-card__img--placeholder" aria-hidden="true"></div>';
     }
-    const imgSrc = resolveProductImageSrc(src);
-    return `<img class="product-card__img" src="${imgSrc}" alt="${product.name}" loading="lazy"${productImageOnErrorAttr(src)}>`;
+    const imgSrc = resolveProductImageSrc(src, product.handle);
+    return `<img class="product-card__img" src="${imgSrc}" alt="${product.name}" loading="lazy">`;
   }
 
   function categoryLabel(cat) {
@@ -314,33 +312,21 @@
     $('#modalPrice').textContent = formatPrice(currentProduct.price) + priceSuffix;
     $('#modalDesc').textContent = productDescription(currentProduct);
 
+    const modalImages =
+      typeof nishanSortProductImages === 'function'
+        ? nishanSortProductImages(currentProduct.images || [])
+        : currentProduct.images || [];
+
     const mainImg = $('#modalImg');
-    mainImg.src = resolveProductImageSrc(currentProduct.images[0]);
+    mainImg.src = resolveProductImageSrc(modalImages[0], currentProduct.handle);
     mainImg.alt = currentProduct.name;
-    const mainFallback = productImageOnErrorAttr(currentProduct.images[0]);
-    if (mainFallback) {
-      const match = mainFallback.match(/data-fallback="([^"]+)"/);
-      if (match) {
-        mainImg.dataset.fallback = match[1];
-        mainImg.onerror = function onImgError() {
-          if (this.dataset.fallback) {
-            this.src = this.dataset.fallback;
-            delete this.dataset.fallback;
-          } else {
-            this.onerror = null;
-          }
-        };
-      }
-    } else {
-      mainImg.onerror = null;
-      delete mainImg.dataset.fallback;
-    }
+    mainImg.onerror = null;
 
     const thumbs = $('#modalThumbs');
-    thumbs.innerHTML = currentProduct.images
+    thumbs.innerHTML = modalImages
       .map(
         (src, i) =>
-          `<img class="modal__thumb${i === 0 ? ' active' : ''}" src="${resolveProductImageSrc(src)}" alt="" data-index="${i}"${productImageOnErrorAttr(src)}>`
+          `<img class="modal__thumb${i === 0 ? ' active' : ''}" src="${resolveProductImageSrc(src, `${currentProduct.handle}-${i}`)}" alt="" data-index="${i}">`
       )
       .join('');
 
@@ -348,26 +334,8 @@
       thumb.addEventListener('click', () => {
         thumbs.querySelectorAll('.modal__thumb').forEach((t) => t.classList.remove('active'));
         thumb.classList.add('active');
-        const src = currentProduct.images[Number(thumb.dataset.index)];
-        mainImg.src = resolveProductImageSrc(src);
-        const fb = productImageOnErrorAttr(src);
-        if (fb) {
-          const match = fb.match(/data-fallback="([^"]+)"/);
-          if (match) {
-            mainImg.dataset.fallback = match[1];
-            mainImg.onerror = function onImgError() {
-              if (this.dataset.fallback) {
-                this.src = this.dataset.fallback;
-                delete this.dataset.fallback;
-              } else {
-                this.onerror = null;
-              }
-            };
-          }
-        } else {
-          mainImg.onerror = null;
-          delete mainImg.dataset.fallback;
-        }
+        const src = modalImages[Number(thumb.dataset.index)];
+        mainImg.src = resolveProductImageSrc(src, currentProduct.handle);
       });
     });
 
@@ -426,7 +394,7 @@
         handle: product.handle,
         name: product.name,
         price: product.price,
-        image: product.images[0],
+        image: getProductImage(product),
         specification: product.specification || '',
         qty,
       });

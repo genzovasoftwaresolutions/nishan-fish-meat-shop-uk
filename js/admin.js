@@ -243,14 +243,25 @@
     updatePublishNote(value);
   }
 
-  function productImageSrc(path, fallback = '/nottinghill_export/images/fish/salmon-fillets-1.jpg') {
-    if (!path) return fallback;
+  function productImageSrc(path, cacheKey = '') {
+    if (!path) return '';
+    if (typeof nishanAssetWithKey === 'function' && cacheKey) {
+      return nishanAssetWithKey(path, cacheKey);
+    }
     return typeof nishanAsset === 'function' ? nishanAsset(path) : `/${String(path).replace(/^\/+/, '')}`;
+  }
+
+  function normalizeImageList(paths) {
+    return typeof nishanSortProductImages === 'function'
+      ? nishanSortProductImages(paths)
+      : [...new Set((paths || []).filter(Boolean))];
   }
 
   function renderImages() {
     const list = $('#imageList');
     if (!list) return;
+
+    imagePaths = normalizeImageList(imagePaths);
 
     if (!imagePaths.length) {
       list.innerHTML = '';
@@ -258,16 +269,16 @@
     }
 
     list.innerHTML = imagePaths
-      .map(
-        (src, i) => {
-          const imgSrc = productImageSrc(src);
-          return `
+      .map((src, i) => {
+        const imgSrc = productImageSrc(src, `admin-${editingHandle || 'new'}-${i}`);
+        const primaryLabel = i === 0 ? '<span class="admin-image-item__primary">Shop card image</span>' : '';
+        return `
       <div class="admin-image-item">
         <img src="${imgSrc}" alt="" loading="lazy">
+        ${primaryLabel}
         <button type="button" data-index="${i}" aria-label="Remove image">&times;</button>
       </div>`;
-        }
-      )
+      })
       .join('');
 
     list.querySelectorAll('button').forEach((btn) => {
@@ -330,12 +341,18 @@
 
     tbody.innerHTML = filtered
       .map((p) => {
-        const img = productImageSrc(p.images?.[0]);
+        const primaryImage = normalizeImageList(p.images || [])[0] || '';
+        const img = primaryImage
+          ? productImageSrc(primaryImage, p.handle)
+          : '';
+        const imgCell = img
+          ? `<img class="admin-table__img" src="${img}" alt="${escapeHtml(p.name)}" loading="lazy">`
+          : '<span class="admin-table__no-img">No image</span>';
         const desc = p.description || p.specification || '—';
         const priceLabel = p.variety ? ' / kg' : '';
         return `
         <tr>
-          <td><img class="admin-table__img" src="${img}" alt="${escapeHtml(p.name)}" loading="lazy"></td>
+          <td>${imgCell}</td>
           <td><strong>${escapeHtml(p.name)}</strong></td>
           <td>${formatPrice(p.price)}${priceLabel}</td>
           <td><span class="admin-table__desc">${escapeHtml(desc)}</span></td>
@@ -400,7 +417,7 @@
       form.specification.value = product.specification || '';
       form.description.value = product.description || '';
       form.variety.checked = !!product.variety;
-      imagePaths = [...(product.images || [])];
+      imagePaths = normalizeImageList(product.images || []);
       setPublishCategory(category, true);
       renderSubcategorySelect(product.subcategory || '', category);
     } else {
@@ -437,7 +454,7 @@
       description: form.description.value.trim(),
       variety: form.variety.checked,
       subcategory: form.subcategory.value,
-      images: imagePaths,
+      images: normalizeImageList(imagePaths),
     };
 
     if (!payload.images.length) {
@@ -513,7 +530,7 @@
       }
     );
 
-    imagePaths.push(data.path);
+    imagePaths.unshift(data.path);
     renderImages();
   }
 
